@@ -2,11 +2,11 @@
 
 rm -rf /root/.cache/vllm/
 echo "deepseek-ai/DeepSeek-R1"
-VLLM_RPC_TIMEOUT=1800000 \
-VLLM_USE_V1=1 \
-VLLM_ROCM_USE_AITER=1 \
-SAFETENSORS_FAST_GPU=1 \
-MODEL_PATH=/mnt/models/models--deepseek-ai--DeepSeek-R1/snapshots/a157fa3d494497a54586a333a23df6c2143e7697
+export VLLM_RPC_TIMEOUT=1800000
+export VLLM_USE_V1=1
+export VLLM_ROCM_USE_AITER=1
+export SAFETENSORS_FAST_GPU=1
+export MODEL_PATH=/mnt/models/models--deepseek-ai--DeepSeek-R1/snapshots/a157fa3d494497a54586a333a23df6c2143e7697
 
 vllm serve $MODEL_PATH \
 -tp 8 \
