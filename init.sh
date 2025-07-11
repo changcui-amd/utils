@@ -52,4 +52,49 @@ if ! echo "$PATH" | grep -q "$INSTALL_DIR"; then
 fi
 
 echo "Zellij installed to $INSTALL_DIR/zellij"
+
+# 写入 denter 函数到 ~/.bashrc（避免重复添加）
+if ! grep -q "denter ()" "$HOME/.bashrc"; then
+    echo "Adding 'denter' function to .bashrc..."
+    cat << 'EOF' >> "$HOME/.bashrc"
+
+# 进入（或启动并进入）现有容器
+denter () {
+    local cname="$1"
+
+    # -------- 参数校验 --------
+    if [[ -z "$cname" ]]; then
+        echo "Usage: denter <container_name>" >&2
+        return 1
+    fi
+
+    # -------- 是否正在运行？ --------
+    if docker ps --filter "name=^/${cname}$" --format '{{.Names}}' | grep -qx "$cname"; then
+        docker exec -it "$cname" /bin/bash
+        return
+    fi
+
+    # -------- 容器存在但未运行？ --------
+    if docker container ls -a --filter "name=^/${cname}$" --format '{{.Names}}' | grep -qx "$cname"; then
+        echo "Container '$cname' exists but is stopped – starting it..."
+        docker start "$cname" >/dev/null || {
+            echo "Failed to start container '$cname'." >&2
+            return 1
+        }
+        docker exec -it "$cname" /bin/bash
+        return
+    fi
+
+    # -------- 容器根本不存在 --------
+    echo "Error: container '$cname' does not exist." >&2
+    return 1
+}
+EOF
+    echo "Function 'denter' added to .bashrc"
+else
+    echo "'denter' function already exists in .bashrc. Skipping."
+fi
+
+echo "✅ Initialization complete. You may want to run: source ~/.bashrc"
+
 echo "All done!"
