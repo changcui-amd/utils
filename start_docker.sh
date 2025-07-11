@@ -72,11 +72,20 @@ build_default_args() {
 # 主流程
 ########################################
 main() {
-    [[ $# -lt 2 ]] && usage
-    local CONTAINER_NAME=$1
-    local IMAGE=$2
-    shift 2
-    local EXTRA_ARGS=("$@")       # 允许用户追加/覆盖
+    if [[ $# -lt 1 ]]; then
+        usage
+    elif [[ $# -eq 1 ]]; then
+        IMAGE=$1
+        CONTAINER_NAME="auto_$(date +%s%N | cut -c1-16)"  # 16位时间戳
+        echo "No container name provided. Using generated name: ${CONTAINER_NAME}"
+        shift 1
+        EXTRA_ARGS=()
+    else
+        CONTAINER_NAME=$1
+        IMAGE=$2
+        shift 2
+        EXTRA_ARGS=("$@")
+    fi
 
     check_docker
     build_default_args
@@ -97,7 +106,7 @@ main() {
     else
         echo "Creating and starting new container '${CONTAINER_NAME}' from image '${IMAGE}'..."
         if docker run "${DEFAULT_RUN_ARGS[@]}" "${EXTRA_ARGS[@]}" --name "${CONTAINER_NAME}" "${IMAGE}"; then
-            echo "Container created and started successfully."
+            echo "Container '${CONTAINER_NAME}' created and started successfully."
             exit 0
         else
             echo "ERROR: Failed to run new container." >&2
