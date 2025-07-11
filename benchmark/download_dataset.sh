@@ -1,4 +1,7 @@
+#!/usr/bin/env bash
+
 download_dataset() {
+    local source="${1:-hf}"
     local output_dir="./datasets"
     local output_file="${output_dir}/ShareGPT_V3_unfiltered_cleaned_split.json"
 
@@ -7,16 +10,26 @@ download_dataset() {
 
     mkdir -p "$output_dir"
 
-    echo "Trying to download from Hugging Face..."
-    if curl -fL --retry 3 -o "$output_file" "$url1"; then
-        echo "Download succeeded from Hugging Face: $output_file"
-    else
-        echo "Failed to download from Hugging Face, trying ModelScope..."
+    if [[ "$source" == "hf" ]]; then
+        echo "Downloading from Hugging Face..."
+        if curl -fL --retry 3 -o "$output_file" "$url1"; then
+            echo "Download succeeded from Hugging Face: $output_file"
+        else
+            echo "ERROR: Download from Hugging Face failed." >&2
+            return 1
+        fi
+    elif [[ "$source" == "ms" ]]; then
+        echo "Downloading from ModelScope..."
         if curl -fL --retry 3 -o "$output_file" "$url2"; then
             echo "Download succeeded from ModelScope: $output_file"
         else
-            echo "ERROR: Failed to download dataset from both sources." >&2
+            echo "ERROR: Download from ModelScope failed." >&2
             return 1
         fi
+    else
+        echo "ERROR: Unknown source '$source'. Use 'hf' or 'ms'." >&2
+        return 1
     fi
 }
+
+download_dataset "$1"
