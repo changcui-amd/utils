@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-# 检查系统使用的是 apt 还是 yum
 if command -v apt &>/dev/null; then
     PKG_MANAGER="apt"
     UPDATE_CMD="sudo apt update"
@@ -15,40 +14,42 @@ else
     exit 1
 fi
 
-# 更新软件包索引
 echo "Updating package lists using $PKG_MANAGER..."
 $UPDATE_CMD
 
-# 安装 vim
 echo "Installing vim..."
 $INSTALL_CMD vim
 
-# 安装 curl（如未安装）
-if ! command -v curl &>/dev/null; then
-    echo "Installing curl..."
-    $INSTALL_CMD curl
-fi
+for pkg in curl tar; do
+    if ! command -v $pkg &>/dev/null; then
+        echo "Installing $pkg..."
+        $INSTALL_CMD $pkg
+    fi
+done
 
-# 安装 zellij（从 GitHub 获取最新 release）
-echo "Installing zellij..."
+echo "Installing zellij to ~/.local/bin..."
+
 ZELLIJ_VERSION=$(curl -s https://api.github.com/repos/zellij-org/zellij/releases/latest | grep tag_name | cut -d '"' -f 4)
-ZELLIJ_DEB="zellij-${ZELLIJ_VERSION#v}-amd64.deb"
-ZELLIJ_URL="https://github.com/zellij-org/zellij/releases/download/${ZELLIJ_VERSION}/${ZELLIJ_DEB}"
+ZELLIJ_TAR="zellij-x86_64-unknown-linux-musl.tar.gz"
+ZELLIJ_URL="https://github.com/zellij-org/zellij/releases/download/${ZELLIJ_VERSION}/${ZELLIJ_TAR}"
 
-echo "Downloading Zellij ${ZELLIJ_VERSION}..."
+INSTALL_DIR="$HOME/.local/bin"
+mkdir -p "$INSTALL_DIR"
+
+echo "Downloading $ZELLIJ_TAR..."
 curl -LO "$ZELLIJ_URL"
 
-echo "Installing Zellij..."
-sudo dpkg -i "$ZELLIJ_DEB" || {
-    echo "dpkg failed. Trying fallback with rpm conversion (requires 'alien')..."
-    $INSTALL_CMD alien
-    sudo alien -r "$ZELLIJ_DEB"
-    RPM_FILE="${ZELLIJ_DEB%.deb}.rpm"
-    sudo rpm -i "$RPM_FILE"
-}
+echo "Extracting..."
+tar -xzf "$ZELLIJ_TAR" zellij
 
-# 清理
-rm -f "$ZELLIJ_DEB" "${RPM_FILE:-}"
+mv zellij "$INSTALL_DIR"
 
-echo "Installation complete!"
+rm "$ZELLIJ_TAR"
 
+if ! echo "$PATH" | grep -q "$INSTALL_DIR"; then
+    echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> "$HOME/.bashrc"
+    echo "Added ~/.local/bin to PATH. Please reload your shell or run: source ~/.bashrc"
+fi
+
+echo "Zellij installed to $INSTALL_DIR/zellij"
+echo "All done!"
