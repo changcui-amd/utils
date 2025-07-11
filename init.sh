@@ -89,6 +89,9 @@ else
     echo "'denter' function already exists in .bashrc. Skipping."
 fi
 
+git config --global user.email "Chang.Cui@amd.com"
+git config --global user.name "changcui"
+
 echo "✅ Initialization complete. You may want to run: source ~/.bashrc"
 
 echo "All done!"
