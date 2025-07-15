@@ -20,7 +20,7 @@ $UPDATE_CMD
 echo "Installing vim..."
 $INSTALL_CMD vim
 
-for pkg in curl tar; do
+for pkg in curl tar jq; do
     if ! command -v $pkg &>/dev/null; then
         echo "Installing $pkg..."
         $INSTALL_CMD $pkg
