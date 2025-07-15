@@ -5,7 +5,7 @@ DATASETPATH=./datasets/ShareGPT_V3_unfiltered_cleaned_split.json
 SEED=0
 
 CONCURRENCY=8
-NREQUESTS=100
+NREQUESTS=$(($CONCURRENCY * 10))
 ISL=6144
 OSL=1024
 
