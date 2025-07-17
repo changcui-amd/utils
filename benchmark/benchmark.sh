@@ -4,7 +4,7 @@ PORT=8000
 DATASETPATH=./datasets/ShareGPT_V3_unfiltered_cleaned_split.json
 SEED=0
 
-CONCURRENCY=8
+CONCURRENCY=${1:-"1"}
 NREQUESTS=$(($CONCURRENCY * 10))
 ISL=6144
 OSL=1024
