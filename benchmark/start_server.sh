@@ -16,3 +16,4 @@ vllm serve $MODEL_PATH \
 --max-seq-len-to-capture 32768 \
 --max-num-batched-tokens 32768 \
 --no-enable-prefix-caching \
+# --load-format dummy \

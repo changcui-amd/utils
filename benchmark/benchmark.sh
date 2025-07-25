@@ -1,6 +1,7 @@
 #!/bin/bash
 
 PORT=8000
+# todo: check datasetpath
 DATASETPATH=./datasets/ShareGPT_V3_unfiltered_cleaned_split.json
 SEED=0
 
