@@ -1,7 +1,7 @@
 #!/bin/bash
 
 rm -rf /root/.cache/vllm/
-echo "deepseek-ai/DeepSeek-R1"
+
 export VLLM_RPC_TIMEOUT=1800000
 export VLLM_USE_V1=1
 export VLLM_ROCM_USE_AITER=1
@@ -17,3 +17,5 @@ vllm serve $MODEL_PATH \
 --max-num-batched-tokens 32768 \
 --no-enable-prefix-caching \
 # --load-format dummy \
+# --compilation_config '{"compile_sizes": [1, 2, 4, 8]}' \
+# --compilation-config '{"full_cuda_graph": true}' \
