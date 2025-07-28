@@ -1,9 +1,12 @@
 #!/bin/bash
 
 PORT=8000
-# todo: check datasetpath
-DATASETPATH=./datasets/ShareGPT_V3_unfiltered_cleaned_split.json
 SEED=0
+DATASETPATH=./datasets/ShareGPT_V3_unfiltered_cleaned_split.json
+if [ ! -f "${DATASETPATH}" ]; then
+  echo "Dataset not found at ${DATASETPATH}, downloading..."
+  bash -x download_dataset.sh
+fi
 
 CONCURRENCY=${1:-"1"}
 NREQUESTS=$(($CONCURRENCY * 10))
