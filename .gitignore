@@ -1,2 +1,4 @@
 *.json
 *.log
+*.swp
+__pycache__
