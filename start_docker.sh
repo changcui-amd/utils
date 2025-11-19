@@ -48,9 +48,11 @@ build_default_args() {
     DEFAULT_RUN_ARGS=(
         -it                       # 分配 tty 并保持 STDIN
         -d                        # 后台运行（与 -it 结合，相当于 -itd）
+        --privileged
         --network=host
         --device=/dev/kfd
         --device=/dev/dri
+        --device=/dev/infiniband
         --group-add video
         --cap-add=SYS_PTRACE
         --security-opt seccomp=unconfined
