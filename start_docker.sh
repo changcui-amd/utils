@@ -52,10 +52,10 @@ build_default_args() {
         --network=host
         --device=/dev/kfd
         --device=/dev/dri
-        --device=/dev/infiniband
         --group-add video
         --cap-add=SYS_PTRACE
         --security-opt seccomp=unconfined
+        -v /dev/infiniband:/dev/infiniband
         -v /home:/home
         -v /data:/data
         -v /work:/work
