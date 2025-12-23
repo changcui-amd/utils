@@ -19,7 +19,7 @@ check_docker() {
 }
 
 build_default_args() {
-    local CUR_PWD="$PWD"
+    local CUR_PWD="/home/ccui1002/dev"
 
     DEFAULT_RUN_ARGS=(
         -it
@@ -46,6 +46,31 @@ build_default_args() {
     )
 }
 
+setup_ssh_config() {
+    local cname="$1"
+
+    docker exec "${cname}" bash -c '
+        set -e
+        SSH_DIR="$HOME/.ssh"
+        CONFIG="$SSH_DIR/config"
+
+        mkdir -p "$SSH_DIR"
+        chmod 700 "$SSH_DIR"
+
+        if ! grep -q "^Host github.com$" "$CONFIG" 2>/dev/null; then
+            cat >> "$CONFIG" <<EOF
+
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile /home/ccui1002/.ssh/id_ed25519
+EOF
+        fi
+
+        chmod 600 "$CONFIG"
+    '
+}
+
 main() {
     if [[ $# -lt 1 ]]; then
         usage
@@ -68,24 +93,23 @@ main() {
     if docker ps --filter "name=^/${CONTAINER_NAME}$" --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
         echo "Container '${CONTAINER_NAME}' is already running."
         exit 0
+
     elif docker ps -a --filter "name=^/${CONTAINER_NAME}$" --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
         echo "Starting existing container '${CONTAINER_NAME}'..."
-        if docker start "${CONTAINER_NAME}"; then
-            echo "Container started successfully."
-            exit 0
-        else
-            echo "ERROR: Failed to start container '${CONTAINER_NAME}'." >&2
-            exit 3
-        fi
+        docker start "${CONTAINER_NAME}"
+        echo "Container started successfully."
+        exit 0
+
     else
         echo "Creating and starting new container '${CONTAINER_NAME}' from image '${IMAGE}'..."
-        if docker run "${DEFAULT_RUN_ARGS[@]}" "${EXTRA_ARGS[@]}" --name "${CONTAINER_NAME}" "${IMAGE}"; then
-            echo "Container '${CONTAINER_NAME}' created and started successfully."
-            exit 0
-        else
-            echo "ERROR: Failed to run new container." >&2
-            exit 3
-        fi
+        docker run "${DEFAULT_RUN_ARGS[@]}" "${EXTRA_ARGS[@]}" \
+            --name "${CONTAINER_NAME}" \
+            "${IMAGE}"
+
+        setup_ssh_config "${CONTAINER_NAME}"
+
+        echo "Container '${CONTAINER_NAME}' created and started successfully."
+        exit 0
     fi
 }
 
