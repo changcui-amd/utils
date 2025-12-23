@@ -1,31 +1,12 @@
 #!/usr/bin/env bash
-#
-# start_docker.sh
-# 用途：根据容器名和镜像名启动（或创建并启动）Docker 容器。
-# 传参：
-#   $1 — 容器名
-#   $2 — 镜像名（可含标签，如 my_image:1.0）
-#   $@ — 其余参数：会在默认参数之后透传给 docker run，可用于覆盖
-# 退出码：
-#   0  成功
-#   1  参数错误
-#   2  Docker 未安装或未运行
-#   3  启动 / 创建失败
-#
 
 set -euo pipefail
 
-########################################
-# 打印用法
-########################################
 usage() {
     echo "Usage: $0 <container_name> <image[:tag]> [extra-docker-run-args]" >&2
     exit 1
 }
 
-########################################
-# 检查 docker 服务
-########################################
 check_docker() {
     if ! command -v docker &>/dev/null; then
         echo "ERROR: Docker CLI not found. Please install Docker." >&2
@@ -37,17 +18,12 @@ check_docker() {
     fi
 }
 
-########################################
-# 默认 docker run 参数
-########################################
 build_default_args() {
-    # 当前工作目录，用于 -w
     local CUR_PWD="$PWD"
 
-    # shell 数组比纯字符串安全
     DEFAULT_RUN_ARGS=(
-        -it                       # 分配 tty 并保持 STDIN
-        -d                        # 后台运行（与 -it 结合，相当于 -itd）
+        -it
+        -d
         --privileged
         --network=host
         --device=/dev/kfd
@@ -70,15 +46,12 @@ build_default_args() {
     )
 }
 
-########################################
-# 主流程
-########################################
 main() {
     if [[ $# -lt 1 ]]; then
         usage
     elif [[ $# -eq 1 ]]; then
         IMAGE=$1
-        CONTAINER_NAME="auto_$(date +%s%N | cut -c1-16)"  # 16位时间戳
+        CONTAINER_NAME="auto_$(date +%s%N | cut -c1-16)"
         echo "No container name provided. Using generated name: ${CONTAINER_NAME}"
         shift 1
         EXTRA_ARGS=()
@@ -92,7 +65,6 @@ main() {
     check_docker
     build_default_args
 
-    # ---------- 判断容器状态 ----------
     if docker ps --filter "name=^/${CONTAINER_NAME}$" --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
         echo "Container '${CONTAINER_NAME}' is already running."
         exit 0
