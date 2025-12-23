@@ -3,42 +3,12 @@ import sys
 import torch
 
 
-def bench(fn, num_warmups: int = 5, num_tests: int = 10,
-          high_precision: bool = False):
-    # Flush L2 cache with 256 MB data
-    torch.cuda.synchronize()
-    cache = torch.empty(int(256e6 // 4), dtype=torch.int, device='cuda')
-    cache.zero_()
-
-    # Warmup
-    for _ in range(num_warmups):
-        fn()
-
-    # Add a large kernel to eliminate the CPU launch overhead
-    if high_precision:
-        x = torch.randn((8192, 8192), dtype=torch.float, device='cuda')
-        y = torch.randn((8192, 8192), dtype=torch.float, device='cuda')
-        x @ y
-
-    # Testing
-    start_event = torch.cuda.Event(enable_timing=True)
-    end_event = torch.cuda.Event(enable_timing=True)
-    start_event.record()
-    for i in range(num_tests):
-        fn()
-    end_event.record()
-    torch.cuda.synchronize()
-
-    return start_event.elapsed_time(end_event) / num_tests / 1e3
-
-
 class empty_suppress:
     def __enter__(self):
         return self
 
     def __exit__(self, *_):
         pass
-
 
 class suppress_stdout_stderr:
     def __enter__(self):
@@ -73,7 +43,6 @@ class suppress_stdout_stderr:
 
         self.outnull_file.close()
         self.errnull_file.close()
-
 
 def bench_kineto(fn, kernel_names, num_tests: int = 30,
                  suppress_kineto_output: bool = False,
